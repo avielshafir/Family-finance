@@ -1,76 +1,105 @@
 <!DOCTYPE html>
 <html lang="he" dir="rtl">
 <head>
-<meta charset="UTF-8">
-<title>ניהול תנועות</title>
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="UTF-8">
+  <title>ניהול תנועות</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<style>
-body {font-family: Arial; background:#f5f7fa; padding:20px;}
-.container {max-width:500px; margin:auto; background:white; padding:20px; border-radius:16px;}
-input, select {width:100%; padding:10px; margin-top:8px;}
-button {margin-top:20px; padding:15px; width:100%; background:#007aff; color:white; border:none;}
-</style>
+  <style>
+    body {
+      font-family: Arial;
+      background: #f5f7fa;
+      margin: 0;
+      padding: 20px;
+    }
+
+    .container {
+      max-width: 500px;
+      margin: auto;
+      background: white;
+      padding: 20px;
+      border-radius: 16px;
+      box-shadow: 0 5px 20px rgba(0,0,0,0.1);
+    }
+
+    h2 {
+      text-align: center;
+    }
+
+    label {
+      display: block;
+      margin-top: 10px;
+      font-weight: bold;
+    }
+
+    input, select, textarea {
+      width: 100%;
+      padding: 10px;
+      border-radius: 8px;
+      border: 1px solid #ccc;
+      margin-top: 5px;
+    }
+
+    button {
+      margin-top: 20px;
+      width: 100%;
+      padding: 15px;
+      background: #007aff;
+      color: white;
+      border: none;
+      border-radius: 12px;
+      font-size: 16px;
+    }
+
+    .success {
+      color: green;
+      text-align: center;
+    }
+
+    .error {
+      color: red;
+      text-align: center;
+    }
+  </style>
 </head>
 
 <body>
+
 <div class="container">
+  <h2>הוספת תנועה</h2>
 
-<h2>הוספת תנועה</h2>
+  <label>תאריך עסקה</label>
+  <input type="date" id="date">
 
-<label>תאריך</label>
-<input type="date" id="date">
+  <label>אמצעי תשלום</label>
+  <select id="paymentMethod">
+    <option>כרטיס אשראי</option>
+    <option>הוראת קבע</option>
+    <option>העברה בנקאית</option>
+    <option>מזומן</option>
+  </select>
 
-<label>אמצעי תשלום</label>
-<select id="paymentMethod">
-  <option>כרטיס אשראי</option>
-  <option>הוראת קבע</option>
-  <option>העברה בנקאית</option>
-</select>
+  <label>תאריך חיוב צפוי</label>
+  <input type="date" id="chargeDate">
 
-<label>תאריך חיוב</label>
-<input type="date" id="chargeDate">
+  <label>תיאור</label>
+  <input type="text" id="description">
 
-<label>סכום לתשלום</label>
-<input type="number" id="amount">
+  <label>סכום</label>
+  <input type="number" id="amount">
 
-<label>סוג פעולה</label>
-<select id="type">
-  <option>הוצאה</option>
-  <option>הכנסה</option>
-</select>
+  <label>סוג</label>
+  <select id="type">
+    <option>הוצאה</option>
+    <option>הכנסה</option>
+  </select>
 
-<label>תיאור</label>
-<input type="text" id="description">
+  <label>הערות</label>
+  <textarea id="notes"></textarea>
 
-<label>קטגוריה</label>
-<select id="category">
-  <option>מזון</option>
-  <option>דלק</option>
-</select>
+  <button onclick="submitData()">שמור</button>
 
-<label>אחראי</label>
-<select id="owner">
-  <option>אני</option>
-  <option>אשתי</option>
-</select>
-
-<label>אופן הוצאה/הכנסה</label>
-<select id="flowType">
-  <option>קבוע</option>
-  <option>משתנה</option>
-</select>
-
-<label>מס' תשלום</label>
-<input type="number" id="paymentNumber">
-
-<label>מתוך תשלומים</label>
-<input type="number" id="totalPayments">
-
-<button onclick="submitData()">שמור</button>
-
-<p id="status"></p>
-
+  <p id="status"></p>
 </div>
 
 <script>
@@ -82,52 +111,59 @@ function calculateChargeDate() {
 
   if (!date) return;
 
-  if (method === "הוראת קבע" || method === "העברה בנקאית") {
+  const immediate = ["הוראת קבע", "העברה בנקאית"];
+
+  if (immediate.includes(method)) {
     return date;
   }
 
   const day = date.getDate();
+
   if (day <= 9) {
     return new Date(date.getFullYear(), date.getMonth(), 10);
   } else {
-    return new Date(date.getFullYear(), date.getMonth()+1, 10);
+    return new Date(date.getFullYear(), date.getMonth() + 1, 10);
   }
-}
-
-function updateCharge() {
-  const charge = calculateChargeDate();
-  if (!charge) return;
-  document.getElementById("chargeDate").value = charge.toISOString().split("T")[0];
 }
 
 document.getElementById("date").addEventListener("change", updateCharge);
 document.getElementById("paymentMethod").addEventListener("change", updateCharge);
 
+function updateCharge() {
+  const charge = calculateChargeDate();
+  if (!charge) return;
+
+  const formatted = charge.toISOString().split("T")[0];
+  document.getElementById("chargeDate").value = formatted;
+}
+
 function submitData() {
   const data = {
-    date: date.value,
-    chargeDate: chargeDate.value,
-    amount: amount.value,
-    type: type.value,
-    description: description.value,
-    category: category.value,
-    paymentMethod: paymentMethod.value,
-    owner: owner.value,
-    flowType: flowType.value,
-    paymentNumber: paymentNumber.value,
-    totalPayments: totalPayments.value
+    date: document.getElementById("date").value,
+    chargeDate: document.getElementById("chargeDate").value,
+    description: document.getElementById("description").value,
+    amount: document.getElementById("amount").value,
+    type: document.getElementById("type").value,
+    paymentMethod: document.getElementById("paymentMethod").value,
+    category: "",
+    subCategory: "",
+    account: "",
+    isFixed: "",
+    notes: document.getElementById("notes").value
   };
 
   fetch(scriptURL, {
     method: "POST",
-    headers: {"Content-Type": "application/json"},
     body: JSON.stringify(data)
   })
+  .then(res => res.json())
   .then(() => {
-    status.innerHTML = "✅ נשמר";
-    document.querySelectorAll("input").forEach(e=>e.value="");
+    document.getElementById("status").innerHTML = "✅ נשמר בהצלחה";
+    document.querySelectorAll("input, textarea").forEach(el => el.value = "");
   })
-  .catch(() => status.innerHTML="❌ שגיאה");
+  .catch(() => {
+    document.getElementById("status").innerHTML = "❌ שגיאה בשליחה";
+  });
 }
 </script>
 
