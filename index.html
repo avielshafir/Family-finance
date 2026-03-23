@@ -35,10 +35,7 @@ button:disabled {background:#999;}
 <input type="number" id="amount">
 
 <label>סוג פעולה</label>
-<select id="type">
-  <option value="הוצאה">הוצאה</option>
-  <option value="הכנסה">הכנסה</option>
-</select>
+<select id="type"></select>
 
 <label>תיאור</label>
 <input type="text" id="description">
@@ -74,6 +71,7 @@ fetch(scriptURL)
   fillSelect("category", data["קטגוריה"]);
   fillSelect("owner", data["אחראי"]);
   fillSelect("flowType", data["אופן הוצאה/הכנסה"]);
+  fillSelect("type", data["סוג פעולה"]);
 
   loadLastValues();
 });
@@ -88,6 +86,11 @@ function fillSelect(id, values){
     opt.textContent = v;
     select.appendChild(opt);
   });
+}
+  function formatDate(dateStr){
+  if(!dateStr) return "";
+  const [y,m,d] = dateStr.split("-");
+  return `${d}/${m}/${y}`;
 }
 
 // 🧠 שמירת ערכים אחרונים
@@ -141,18 +144,18 @@ function submitData(){
   status.innerHTML = "⏳ שומר...";
 
   const data = {
-    date: date.value,
-    chargeDate: chargeDate.value,
-    amount: amount.value,
-    type: type.value,
-    description: description.value,
-    category: category.value,
-    paymentMethod: paymentMethod.value,
-    owner: owner.value,
-    flowType: flowType.value,
-    paymentNumber: paymentNumber.value,
-    totalPayments: totalPayments.value
-  };
+  date: formatDate(date.value),
+  chargeDate: formatDate(chargeDate.value),
+  amount: amount.value,
+  type: type.value,
+  description: description.value,
+  category: category.value,
+  paymentMethod: paymentMethod.value,
+  owner: owner.value,
+  flowType: flowType.value,
+  paymentNumber: paymentNumber.value,
+  totalPayments: totalPayments.value
+};
 
   fetch(scriptURL, {
     method: "POST",
