@@ -120,20 +120,20 @@ function submitData() {
   };
 
   fetch(scriptURL, {
-    method: "POST",
-    headers: {"Content-Type": "application/json"},
-    body: JSON.stringify(data)
-  })
-  .then(res => res.text())
-  .then(() => {
-    document.getElementById("status").innerHTML = "✅ נשמר בהצלחה";
-
-    document.querySelectorAll("input").forEach(e => e.value = "");
-  })
-  .catch((err) => {
-    console.error(err);
-    document.getElementById("status").innerHTML = "❌ שגיאה בשליחה";
-  });
+  method: "POST",
+  mode: "no-cors",   // 🔥 זה התיקון החשוב
+  headers: {
+    "Content-Type": "application/json"
+  },
+  body: JSON.stringify(data)
+})
+.then(() => {
+  document.getElementById("status").innerHTML = "✅ נשמר בהצלחה";
+  document.querySelectorAll("input").forEach(e => e.value = "");
+})
+.catch(() => {
+  document.getElementById("status").innerHTML = "❌ שגיאה בשליחה";
+});
 }
 </script>
 
