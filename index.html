@@ -104,18 +104,19 @@ document.getElementById("date").addEventListener("change", updateCharge);
 document.getElementById("paymentMethod").addEventListener("change", updateCharge);
 
 function submitData() {
+
   const data = {
-    date: date.value,
-    chargeDate: chargeDate.value,
-    amount: amount.value,
-    type: type.value,
-    description: description.value,
-    category: category.value,
-    paymentMethod: paymentMethod.value,
-    owner: owner.value,
-    flowType: flowType.value,
-    paymentNumber: paymentNumber.value,
-    totalPayments: totalPayments.value
+    date: document.getElementById("date").value,
+    chargeDate: document.getElementById("chargeDate").value,
+    amount: document.getElementById("amount").value,
+    type: document.getElementById("type").value,
+    description: document.getElementById("description").value,
+    category: document.getElementById("category").value,
+    paymentMethod: document.getElementById("paymentMethod").value,
+    owner: document.getElementById("owner").value,
+    flowType: document.getElementById("flowType").value,
+    paymentNumber: document.getElementById("paymentNumber").value,
+    totalPayments: document.getElementById("totalPayments").value
   };
 
   fetch(scriptURL, {
@@ -123,11 +124,17 @@ function submitData() {
     headers: {"Content-Type": "application/json"},
     body: JSON.stringify(data)
   })
+  .then(res => res.json())
   .then(() => {
-    status.innerHTML = "✅ נשמר";
-    document.querySelectorAll("input").forEach(e=>e.value="");
+    document.getElementById("status").innerHTML = "✅ נשמר בהצלחה";
+
+    // ניקוי טופס
+    document.querySelectorAll("input").forEach(e => e.value = "");
   })
-  .catch(() => status.innerHTML="❌ שגיאה");
+  .catch((err) => {
+    console.error(err);
+    document.getElementById("status").innerHTML = "❌ שגיאה בשליחה";
+  });
 }
 </script>
 
