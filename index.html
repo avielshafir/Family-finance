@@ -124,11 +124,10 @@ function submitData() {
     headers: {"Content-Type": "application/json"},
     body: JSON.stringify(data)
   })
-  .then(res => res.json())
+  .then(res => res.text())
   .then(() => {
     document.getElementById("status").innerHTML = "✅ נשמר בהצלחה";
 
-    // ניקוי טופס
     document.querySelectorAll("input").forEach(e => e.value = "");
   })
   .catch((err) => {
