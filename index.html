@@ -2,31 +2,31 @@
 <html lang="he" dir="rtl">
 <head>
 <meta charset="UTF-8">
-<title>ניהול תנועות</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ניהול תנועות</title>
 
 <style>
-body {font-family: Arial; background:#f5f7fa; padding:20px;}
-.container {max-width:500px; margin:auto; background:white; padding:20px; border-radius:16px;}
-input, select {width:100%; padding:10px; margin-top:8px;}
-button {margin-top:20px; padding:15px; width:100%; background:#007aff; color:white; border:none;}
+body {font-family: Arial; background:#f2f4f7; padding:15px;}
+.container {max-width:520px; margin:auto; background:white; padding:20px; border-radius:16px;}
+h2 {text-align:center;}
+label {margin-top:10px; display:block; font-weight:bold;}
+input, select {width:100%; padding:10px; margin-top:5px; border-radius:8px; border:1px solid #ccc;}
+button {margin-top:20px; padding:15px; width:100%; background:#007aff; color:white; border:none; border-radius:12px; font-size:16px;}
+button:disabled {background:#999;}
+#status {text-align:center; margin-top:10px;}
 </style>
 </head>
 
 <body>
-<div class="container">
 
+<div class="container">
 <h2>הוספת תנועה</h2>
 
 <label>תאריך</label>
 <input type="date" id="date">
 
 <label>אמצעי תשלום</label>
-<select id="paymentMethod">
-  <option>כרטיס אשראי</option>
-  <option>הוראת קבע</option>
-  <option>העברה בנקאית</option>
-</select>
+<select id="paymentMethod"></select>
 
 <label>תאריך חיוב</label>
 <input type="date" id="chargeDate">
@@ -36,30 +36,21 @@ button {margin-top:20px; padding:15px; width:100%; background:#007aff; color:whi
 
 <label>סוג פעולה</label>
 <select id="type">
-  <option>הוצאה</option>
-  <option>הכנסה</option>
+  <option value="הוצאה">הוצאה</option>
+  <option value="הכנסה">הכנסה</option>
 </select>
 
 <label>תיאור</label>
 <input type="text" id="description">
 
 <label>קטגוריה</label>
-<select id="category">
-  <option>מזון</option>
-  <option>דלק</option>
-</select>
+<select id="category"></select>
 
 <label>אחראי</label>
-<select id="owner">
-  <option>אני</option>
-  <option>אשתי</option>
-</select>
+<select id="owner"></select>
 
 <label>אופן הוצאה/הכנסה</label>
-<select id="flowType">
-  <option>קבוע</option>
-  <option>משתנה</option>
-</select>
+<select id="flowType"></select>
 
 <label>מס' תשלום</label>
 <input type="number" id="paymentNumber">
@@ -67,18 +58,56 @@ button {margin-top:20px; padding:15px; width:100%; background:#007aff; color:whi
 <label>מתוך תשלומים</label>
 <input type="number" id="totalPayments">
 
-<button onclick="submitData()">שמור</button>
-
+<button id="submitBtn" onclick="submitData()">שמור</button>
 <p id="status"></p>
 
 </div>
 
 <script>
-const scriptURL = "https://script.google.com/macros/s/AKfycbxkU18Y2sWnVJCuYbu4T_cgCkFC1ds_SHOi7FkL9wKm5ZPciiP3UKgIKbp9h1AngkKE/exec";
+const scriptURL = "https://script.google.com/macros/s/AKfycbyhqjtKnp9Di_bHUoH3qME2dgLbXUr5XA5oEA5U9o-1z6hPFyRHWe6v4zgGEOYkCtPH/exec";
 
+// 🔄 טעינת Dropdownים מה-Sheet
+fetch(scriptURL)
+.then(res => res.json())
+.then(data => {
+  fillSelect("paymentMethod", data["אמצעי תשלום"]);
+  fillSelect("category", data["קטגוריה"]);
+  fillSelect("owner", data["אחראי"]);
+  fillSelect("flowType", data["אופן הוצאה/הכנסה"]);
+
+  loadLastValues();
+});
+
+// 🧩 מילוי Dropdown
+function fillSelect(id, values){
+  const select = document.getElementById(id);
+  select.innerHTML = "";
+  values.forEach(v=>{
+    const opt = document.createElement("option");
+    opt.value = v;
+    opt.textContent = v;
+    select.appendChild(opt);
+  });
+}
+
+// 🧠 שמירת ערכים אחרונים
+function saveLastValues(){
+  localStorage.setItem("paymentMethod", paymentMethod.value);
+  localStorage.setItem("category", category.value);
+  localStorage.setItem("owner", owner.value);
+}
+
+// 🔁 טעינת ערכים אחרונים
+function loadLastValues(){
+  if(localStorage.getItem("paymentMethod")) paymentMethod.value = localStorage.getItem("paymentMethod");
+  if(localStorage.getItem("category")) category.value = localStorage.getItem("category");
+  if(localStorage.getItem("owner")) owner.value = localStorage.getItem("owner");
+}
+
+// 🧠 חישוב תאריך חיוב
 function calculateChargeDate() {
-  const date = new Date(document.getElementById("date").value);
-  const method = document.getElementById("paymentMethod").value;
+  const date = new Date(dateInput.value);
+  const method = paymentMethod.value;
 
   if (!date) return;
 
@@ -94,46 +123,54 @@ function calculateChargeDate() {
   }
 }
 
-function updateCharge() {
+const dateInput = document.getElementById("date");
+
+dateInput.addEventListener("change", updateCharge);
+paymentMethod.addEventListener("change", updateCharge);
+
+function updateCharge(){
   const charge = calculateChargeDate();
   if (!charge) return;
-  document.getElementById("chargeDate").value = charge.toISOString().split("T")[0];
+  chargeDate.value = charge.toISOString().split("T")[0];
 }
 
-document.getElementById("date").addEventListener("change", updateCharge);
-document.getElementById("paymentMethod").addEventListener("change", updateCharge);
+// 🚀 שליחה
+function submitData(){
 
-function submitData() {
+  submitBtn.disabled = true;
+  status.innerHTML = "⏳ שומר...";
 
   const data = {
-    date: document.getElementById("date").value,
-    chargeDate: document.getElementById("chargeDate").value,
-    amount: document.getElementById("amount").value,
-    type: document.getElementById("type").value,
-    description: document.getElementById("description").value,
-    category: document.getElementById("category").value,
-    paymentMethod: document.getElementById("paymentMethod").value,
-    owner: document.getElementById("owner").value,
-    flowType: document.getElementById("flowType").value,
-    paymentNumber: document.getElementById("paymentNumber").value,
-    totalPayments: document.getElementById("totalPayments").value
+    date: date.value,
+    chargeDate: chargeDate.value,
+    amount: amount.value,
+    type: type.value,
+    description: description.value,
+    category: category.value,
+    paymentMethod: paymentMethod.value,
+    owner: owner.value,
+    flowType: flowType.value,
+    paymentNumber: paymentNumber.value,
+    totalPayments: totalPayments.value
   };
 
   fetch(scriptURL, {
-  method: "POST",
-  mode: "no-cors",   // 🔥 זה התיקון החשוב
-  headers: {
-    "Content-Type": "application/json"
-  },
-  body: JSON.stringify(data)
-})
-.then(() => {
-  document.getElementById("status").innerHTML = "✅ נשמר בהצלחה";
-  document.querySelectorAll("input").forEach(e => e.value = "");
-})
-.catch(() => {
-  document.getElementById("status").innerHTML = "❌ שגיאה בשליחה";
-});
+    method: "POST",
+    mode: "no-cors",
+    headers: {"Content-Type": "application/json"},
+    body: JSON.stringify(data)
+  })
+  .then(() => {
+    status.innerHTML = "✅ נשמר בהצלחה";
+    saveLastValues();
+
+    document.querySelectorAll("input").forEach(e=>e.value="");
+    submitBtn.disabled = false;
+  })
+  .catch(()=>{
+    status.innerHTML = "❌ שגיאה";
+    submitBtn.disabled = false;
+  });
 }
 </script>
 
